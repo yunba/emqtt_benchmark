@@ -87,7 +87,7 @@ run(_Parent, 0, _PubSub, _Opts) ->
     done;
 run(Parent, N, PubSub, Opts) ->
     spawn(?MODULE, connect, [Parent, N+proplists:get_value(startnumber, Opts), PubSub, Opts]),
-%	timer:sleep(proplists:get_value(interval, Opts)),
+	timer:sleep(proplists:get_value(interval, Opts)),
 	run(Parent, N-1, PubSub, Opts).
     
 connect(Parent, N, PubSub, Opts) ->
@@ -105,7 +105,12 @@ connect(Parent, N, PubSub, Opts) ->
                 subscribe(Client, AllOpts);
             pub ->
                Interval = proplists:get_value(interval_of_msg, Opts),
-               timer:send_interval(Interval, publish)
+               case Interval of 
+                   0 ->
+                       self() ! publish;
+                   _ ->
+                       timer:send_interval(Interval, Interval)
+               end
         end,
         loop(N, Client, PubSub, AllOpts);
     {error, Error} ->
@@ -115,6 +120,12 @@ connect(Parent, N, PubSub, Opts) ->
 loop(N, Client, PubSub, Opts) ->
     receive
         publish ->
+            case proplists:get_value(interval_of_msg, Opts) of
+                0 ->
+                    self() ! publish;
+                _ ->
+                    ignore
+            end,
             publish(Client, Opts),
             ets:update_counter(?TAB, sent, {2, 1}),
             loop(N, Client, PubSub, Opts);
