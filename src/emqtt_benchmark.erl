@@ -109,7 +109,7 @@ connect(Parent, N, PubSub, Opts) ->
                    0 ->
                        self() ! publish;
                    _ ->
-                       timer:send_interval(Interval, Interval)
+                       timer:send_interval(Interval, publish)
                end
         end,
         loop(N, Client, PubSub, AllOpts);
