@@ -120,14 +120,19 @@ connect(Parent, N, PubSub, Opts) ->
 loop(N, Client, PubSub, Opts) ->
     receive
         publish ->
+            publish(Client, Opts),
+            Counted = ets:update_counter(?TAB, sent, {2, 1}),
             case proplists:get_value(interval_of_msg, Opts) of
                 0 ->
-                    self() ! publish;
+                    case Counted of
+                        5000000 ->
+                            self() ! publish;
+                        _ ->
+                            ignore
+                    end;
                 _ ->
                     ignore
             end,
-            publish(Client, Opts),
-            ets:update_counter(?TAB, sent, {2, 1}),
             loop(N, Client, PubSub, Opts);
         {publish, _Topic, _Payload} ->
             ets:update_counter(?TAB, recv, {2, 1}),
