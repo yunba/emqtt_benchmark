@@ -87,7 +87,7 @@ run(_Parent, 0, _PubSub, _Opts) ->
     done;
 run(Parent, N, PubSub, Opts) ->
     spawn(?MODULE, connect, [Parent, N+proplists:get_value(startnumber, Opts), PubSub, Opts]),
-	timer:sleep(proplists:get_value(interval, Opts)),
+%	timer:sleep(proplists:get_value(interval, Opts)),
 	run(Parent, N-1, PubSub, Opts).
     
 connect(Parent, N, PubSub, Opts) ->
